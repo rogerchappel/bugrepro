@@ -4,6 +4,7 @@ import readline from 'node:readline/promises';
 import { stdin as input, stdout as output } from 'node:process';
 import { runCommand } from './exec.js';
 import type { ReproManifest } from './types.js';
+import { validateManifest } from './validate.js';
 
 const safeCommands = new Set(['node', 'npm', 'pnpm', 'yarn', 'python', 'python3', 'bash', 'sh', 'cat', 'grep']);
 const dangerousPattern = /\b(rm|curl|wget|ssh|scp|sudo|dd|mkfs|chmod|chown)\b|[;&|`$<>]/;
@@ -15,7 +16,9 @@ export function commandNeedsConfirmation(command: string[]): boolean {
 
 export async function loadManifest(bundleDir: string): Promise<ReproManifest> {
   const raw = await fs.readFile(path.join(bundleDir, 'repro.json'), 'utf8');
-  return JSON.parse(raw) as ReproManifest;
+  const parsed = JSON.parse(raw) as unknown;
+  validateManifest(parsed);
+  return parsed;
 }
 
 export async function replay(bundleDir: string, assumeYes = false): Promise<number | null> {
