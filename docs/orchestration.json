@@ -1,0 +1,24 @@
+{
+  "project": "bugrepro",
+  "owner": "rogerchappel",
+  "repo": "rogerchappel/bugrepro",
+  "visibility": "public",
+  "localFirst": true,
+  "reviewGates": [
+    "npm test",
+    "npm run check",
+    "npm run build",
+    "npm run smoke",
+    "bash scripts/validate.sh"
+  ],
+  "commands": {
+    "capture": "bugrepro capture --out .repro --fixture tests/fixtures -- npm test",
+    "pack": "bugrepro pack .repro --out repro.tar.gz",
+    "replay": "bugrepro replay .repro"
+  },
+  "safety": {
+    "uploads": false,
+    "unsafeReplayRequiresConfirmation": true,
+    "redactionReviewRequiredBeforeSharing": true
+  }
+}
