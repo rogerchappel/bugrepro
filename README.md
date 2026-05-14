@@ -74,7 +74,7 @@ npm run smoke
 bash scripts/validate.sh
 ```
 
-See [CONTRIBUTING.md](CONTRIBUTING.md), [SECURITY.md](SECURITY.md), and [docs/PRD.md](docs/PRD.md).
+See [CONTRIBUTING.md](CONTRIBUTING.md), [SECURITY.md](SECURITY.md), [docs/redaction.md](docs/redaction.md), [docs/replay-safety.md](docs/replay-safety.md), and [docs/PRD.md](docs/PRD.md).
 
 ## License
 
