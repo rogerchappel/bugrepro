@@ -12,6 +12,9 @@
   },
   "files": [
     "dist",
+    "docs/redaction.md",
+    "docs/replay-safety.md",
+    "docs/PRD.md",
     "README.md",
     "LICENSE"
   ],
