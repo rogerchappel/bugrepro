@@ -20,6 +20,10 @@ async function main(argv: string[]): Promise<number> {
     process.stdout.write(helpText());
     return 0;
   }
+  if (parsed.command === '--version' || parsed.command === '-v') {
+    process.stdout.write('0.1.0\n');
+    return 0;
+  }
   if (parsed.command === 'capture') {
     const rules = flagAll(parsed.flags, 'redact').map(parseRule);
     const out = path.resolve(flag(parsed.flags, 'out', '.repro')!);
