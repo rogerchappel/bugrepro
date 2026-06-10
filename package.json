@@ -15,8 +15,12 @@
     "docs/redaction.md",
     "docs/replay-safety.md",
     "docs/PRD.md",
+    "CHANGELOG.md",
+    "CODE_OF_CONDUCT.md",
+    "CONTRIBUTING.md",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "SECURITY.md"
   ],
   "scripts": {
     "build": "tsc",
