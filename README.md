@@ -78,6 +78,19 @@ bash scripts/validate.sh
 
 See [CONTRIBUTING.md](CONTRIBUTING.md), [SECURITY.md](SECURITY.md), [docs/redaction.md](docs/redaction.md), [docs/replay-safety.md](docs/replay-safety.md), and [docs/PRD.md](docs/PRD.md).
 
+## Development
+
+Use Node.js 20 or newer. Run the same checks locally before opening a PR:
+
+```sh
+npm run build
+npm run check
+npm test
+npm run smoke
+npm run package:smoke
+npm run release:check
+```
+
 ## License
 
 MIT
