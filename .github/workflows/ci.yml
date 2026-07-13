@@ -26,6 +26,9 @@ jobs:
           required_files=(
             README.md
             LICENSE
+            SECURITY.md
+            CHANGELOG.md
+            CONTRIBUTING.md
           )
 
           for file in "${required_files[@]}"; do
@@ -65,6 +68,4 @@ jobs:
           fi
 
           npm run lint --if-present
-          npm test --if-present
-          npm run typecheck --if-present
-          npm run build --if-present
+          npm run release:check --if-present
