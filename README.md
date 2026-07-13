@@ -46,6 +46,19 @@ bugrepro replay .repro
 
 Unsafe-looking commands ask for confirmation unless you pass `--yes`.
 
+## Runnable demo
+
+From a checkout, generate a minimal repro bundle from the checked-in fixture:
+
+```bash
+npm run build
+bash demo/run-minimal-bundle.sh
+```
+
+See [docs/tutorials/capture-a-minimal-repro.md](docs/tutorials/capture-a-minimal-repro.md)
+for the walkthrough and [docs/promo/minimal-repro-brief.md](docs/promo/minimal-repro-brief.md)
+for a short recording outline.
+
 ## What goes in a bundle
 
 - command, exit code, runtime, duration
