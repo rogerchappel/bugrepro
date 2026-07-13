@@ -46,6 +46,19 @@ bugrepro replay .repro
 
 Unsafe-looking commands ask for confirmation unless you pass `--yes`.
 
+## Runnable demo
+
+From a checkout, generate a minimal repro bundle from the checked-in fixture:
+
+```bash
+npm run build
+bash demo/run-minimal-bundle.sh
+```
+
+See [docs/tutorials/capture-a-minimal-repro.md](docs/tutorials/capture-a-minimal-repro.md)
+for the walkthrough and [docs/promo/minimal-repro-brief.md](docs/promo/minimal-repro-brief.md)
+for a short recording outline.
+
 ## What goes in a bundle
 
 - command, exit code, runtime, duration
@@ -71,10 +84,25 @@ npm test
 npm run check
 npm run build
 npm run smoke
+npm run package:smoke
+npm run release:check
 bash scripts/validate.sh
 ```
 
 See [CONTRIBUTING.md](CONTRIBUTING.md), [SECURITY.md](SECURITY.md), [docs/redaction.md](docs/redaction.md), [docs/replay-safety.md](docs/replay-safety.md), and [docs/PRD.md](docs/PRD.md).
+
+## Development
+
+Use Node.js 20 or newer. Run the same checks locally before opening a PR:
+
+```sh
+npm run build
+npm run check
+npm test
+npm run smoke
+npm run package:smoke
+npm run release:check
+```
 
 ## License
 

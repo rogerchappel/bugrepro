@@ -15,19 +15,21 @@
     "docs/redaction.md",
     "docs/replay-safety.md",
     "docs/PRD.md",
+    "CHANGELOG.md",
+    "CODE_OF_CONDUCT.md",
+    "CONTRIBUTING.md",
     "README.md",
     "LICENSE",
-    "SECURITY.md",
-    "CHANGELOG.md",
-    "CONTRIBUTING.md"
+    "SECURITY.md"
   ],
   "scripts": {
     "build": "tsc",
     "check": "tsc --noEmit",
     "test": "npm run build && node --test tests/*.test.mjs",
     "smoke": "npm run build && bash scripts/smoke.sh",
-    "package:smoke": "npm pack --dry-run",
-    "release:check": "npm test && npm run check && npm run smoke && npm run package:smoke"
+    "package:smoke": "npm run build && node scripts/package-smoke.mjs",
+    "release:check": "npm test && npm run check && npm run smoke && npm run package:smoke",
+    "lint": "npm run check"
   },
   "keywords": [
     "bug-report",
