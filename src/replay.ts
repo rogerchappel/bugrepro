@@ -6,12 +6,12 @@ import { runCommand } from './exec.js';
 import type { ReproManifest } from './types.js';
 import { validateManifest } from './validate.js';
 
-const safeCommands = new Set(['node', 'npm', 'pnpm', 'yarn', 'python', 'python3', 'bash', 'sh', 'cat', 'grep']);
+const promptFreeCommands = new Set(['cat', 'grep']);
 const dangerousPattern = /\b(rm|curl|wget|ssh|scp|sudo|dd|mkfs|chmod|chown)\b|[;&|`$<>]/;
 
 export function commandNeedsConfirmation(command: string[]): boolean {
   const executable = path.basename(command[0] ?? '');
-  return !safeCommands.has(executable) || dangerousPattern.test(command.join(' '));
+  return !promptFreeCommands.has(executable) || dangerousPattern.test(command.join(' '));
 }
 
 export async function loadManifest(bundleDir: string): Promise<ReproManifest> {
