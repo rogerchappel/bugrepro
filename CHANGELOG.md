@@ -7,6 +7,10 @@ format and uses semantic versioning when versioned releases are published.
 
 ## [Unreleased]
 
+### Fixed
+
+- Require replay confirmation for interpreters and other code-executing commands.
+
 ### Added
 
 - Initial project setup.
