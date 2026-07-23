@@ -44,7 +44,9 @@ Replay after unpacking and reviewing the command:
 bugrepro replay .repro
 ```
 
-Unsafe-looking commands ask for confirmation unless you pass `--yes`.
+Code-executing commands ask for confirmation unless you pass `--yes`. Only
+non-code-executing `cat` and `grep` commands can replay without a prompt; see
+[Replay Safety](docs/replay-safety.md) for the complete policy.
 
 ## Runnable demo
 
