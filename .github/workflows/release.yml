@@ -38,10 +38,14 @@ jobs:
       - name: Run release checks
         run: npm run release:check
       - name: Build package
-        run: npm pack
+        run: |
+          package_tarball="$(npm pack)"
+          echo "PACKAGE_TARBALL=$package_tarball" >> "$GITHUB_ENV"
+      - name: Publish package to npm
+        run: npm publish "$PACKAGE_TARBALL" --provenance --access public
       - name: Generate release notes
         run: node /tmp/releasebox/bin/releasebox.js notes . > RELEASE_NOTES.md
       - name: Create GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "${GITHUB_REF_NAME}" --notes-file RELEASE_NOTES.md *.tgz
+        run: gh release create "${GITHUB_REF_NAME}" --notes-file RELEASE_NOTES.md "$PACKAGE_TARBALL"
