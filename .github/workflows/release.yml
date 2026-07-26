@@ -25,6 +25,8 @@ jobs:
           node-version: 22
           cache: npm
           registry-url: https://registry.npmjs.org
+      - name: Install trusted publishing client
+        run: npm install --global npm@11
       - name: Install dependencies
         run: npm ci
       - name: Install ReleaseBox
