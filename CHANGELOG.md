@@ -10,6 +10,7 @@ format and uses semantic versioning when versioned releases are published.
 ### Fixed
 
 - Require replay confirmation for interpreters and other code-executing commands.
+- Publish tagged release artifacts to npm so the documented install command works.
 
 ### Added
 
