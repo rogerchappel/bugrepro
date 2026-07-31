@@ -106,6 +106,12 @@ npm run package:smoke
 npm run release:check
 ```
 
+## Releases
+
+Pushing a `v*.*.*` tag runs the reviewed release workflow. The workflow checks
+ReleaseBox readiness and the full release suite, then publishes the package to
+npm with provenance and attaches the same tarball to a GitHub release.
+
 ## License
 
 MIT
