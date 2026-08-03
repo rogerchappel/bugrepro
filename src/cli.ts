@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
-import { parseArgs, flag, flagAll } from './args.js';
+import { parseArgs, flag, flagAll, UsageError } from './args.js';
 import { capture, defaultCaptureOptions } from './capture.js';
 import { helpText } from './help.js';
 import { packBundle } from './pack.js';
@@ -25,12 +25,16 @@ async function main(argv: string[]): Promise<number> {
     return 0;
   }
   if (parsed.command === 'capture') {
+    const maxBytes = Number(flag(parsed.flags, 'max-bytes', '64000'));
+    if (!Number.isSafeInteger(maxBytes) || maxBytes <= 0) {
+      throw new UsageError('Option --max-bytes must be a positive integer');
+    }
     const rules = flagAll(parsed.flags, 'redact').map(parseRule);
     const out = path.resolve(flag(parsed.flags, 'out', '.repro')!);
     const manifest = await capture(defaultCaptureOptions(parsed.rest, {
       outputDir: out,
       fixtures: flagAll(parsed.flags, 'fixture'),
-      maxBytes: Number(flag(parsed.flags, 'max-bytes', '64000')),
+      maxBytes,
       redactRules: rules
     }));
     process.stdout.write(`${JSON.stringify({ ok: true, out, exitCode: manifest.command.exitCode })}\n`);
@@ -58,6 +62,11 @@ async function main(argv: string[]): Promise<number> {
 main(process.argv.slice(2)).then((code) => {
   process.exitCode = code;
 }).catch((error: unknown) => {
-  process.stderr.write(`${error instanceof Error ? error.message : String(error)}\n`);
-  process.exitCode = 1;
+  if (error instanceof UsageError) {
+    process.stderr.write(`${error.message}\n\n${helpText()}`);
+    process.exitCode = 64;
+  } else {
+    process.stderr.write(`${error instanceof Error ? error.message : String(error)}\n`);
+    process.exitCode = 1;
+  }
 });
