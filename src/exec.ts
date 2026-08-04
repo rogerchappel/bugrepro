@@ -7,11 +7,21 @@ export async function runCommand(command: string[], cwd: string, maxBytes: numbe
   const startedAt = new Date(started).toISOString();
   return await new Promise((resolve, reject) => {
     const child = spawn(command[0]!, command.slice(1), { cwd, shell: false, env: process.env });
-    let stdout = '';
-    let stderr = '';
-    const append = (current: string, chunk: Buffer): string => {
-      const next = current + chunk.toString('utf8');
-      return next.length > maxBytes ? next.slice(next.length - maxBytes) : next;
+    let stdout: Buffer = Buffer.alloc(0);
+    let stderr: Buffer = Buffer.alloc(0);
+    const append = (current: Buffer, chunk: Buffer): Buffer => {
+      const next = Buffer.concat([current, chunk]);
+      return next.length > maxBytes ? next.subarray(next.length - maxBytes) : next;
+    };
+    const decodeTail = (bytes: Buffer): string => {
+      for (let offset = 0; offset <= Math.min(3, bytes.length); offset += 1) {
+        try {
+          return new TextDecoder('utf-8', { fatal: true }).decode(bytes.subarray(offset));
+        } catch {
+          // A byte-bounded tail can begin partway through a four-byte UTF-8 sequence.
+        }
+      }
+      return '';
     };
     child.stdout.on('data', (chunk: Buffer) => { stdout = append(stdout, chunk); });
     child.stderr.on('data', (chunk: Buffer) => { stderr = append(stderr, chunk); });
@@ -23,8 +33,8 @@ export async function runCommand(command: string[], cwd: string, maxBytes: numbe
         cwd,
         exitCode,
         signal,
-        stdout,
-        stderr,
+        stdout: decodeTail(stdout),
+        stderr: decodeTail(stderr),
         startedAt,
         finishedAt: new Date(finished).toISOString(),
         durationMs: finished - started
