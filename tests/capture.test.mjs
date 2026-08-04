@@ -21,3 +21,40 @@ test('capture writes redacted manifest and fixture copy', async () => {
   assert.match(await readFile(path.join(out, 'REPRO.md'), 'utf8'), /boom from fixture/);
   assert.match(await readFile(path.join(out, 'fixtures/input.txt'), 'utf8'), /hello fixture/);
 });
+
+test('capture retains independent UTF-8 tails within the byte limit', async () => {
+  const out = await mkdtemp(path.join(os.tmpdir(), 'bugrepro-capture-'));
+  const script = "process.stdout.write('start-😀界'); process.stderr.write('error-界😀')";
+  const manifest = await capture(defaultCaptureOptions([process.execPath, '-e', script], {
+    outputDir: out,
+    maxBytes: 7
+  }));
+
+  assert.equal(manifest.command.stdout, '😀界');
+  assert.equal(manifest.command.stderr, '界😀');
+  assert.ok(Buffer.byteLength(manifest.command.stdout, 'utf8') <= 7);
+  assert.ok(Buffer.byteLength(manifest.command.stderr, 'utf8') <= 7);
+  assert.doesNotMatch(manifest.command.stdout + manifest.command.stderr, /\uFFFD/);
+
+  const saved = JSON.parse(await readFile(path.join(out, 'repro.json'), 'utf8'));
+  assert.equal(saved.command.stdout, '😀界');
+  assert.equal(saved.command.stderr, '界😀');
+  const markdown = await readFile(path.join(out, 'REPRO.md'), 'utf8');
+  assert.match(markdown, /Captured stdout\n\n```text\n😀界\n```/);
+  assert.match(markdown, /Captured stderr\n\n```text\n界😀\n```/);
+});
+
+test('capture preserves ASCII tail-retention behavior', async () => {
+  const out = await mkdtemp(path.join(os.tmpdir(), 'bugrepro-capture-'));
+  const manifest = await capture(defaultCaptureOptions([
+    process.execPath,
+    '-e',
+    "process.stdout.write('123456'); process.stderr.write('abcdef')"
+  ], {
+    outputDir: out,
+    maxBytes: 4
+  }));
+
+  assert.equal(manifest.command.stdout, '3456');
+  assert.equal(manifest.command.stderr, 'cdef');
+});

@@ -26,6 +26,12 @@ Capture a failing command and one fixture directory:
 bugrepro capture --out .repro --fixture tests/fixtures -- npm test
 ```
 
+Use `--max-bytes <bytes>` to set the capture ceiling for each of stdout and
+stderr (the default is 64,000 bytes per stream). When a stream exceeds the
+ceiling, `bugrepro` keeps its tail and drops any leading partial UTF-8
+character, so `REPRO.md` and `repro.json` always contain valid UTF-8 text. A
+complete character larger than the ceiling is omitted.
+
 Redact a log with a custom rule:
 
 ```bash
