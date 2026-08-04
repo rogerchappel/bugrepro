@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
-import { mkdir, mkdtemp, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
@@ -34,6 +34,20 @@ test('--yes works before and after the replay bundle directory', async () => {
   const dir = await replayBundle();
   assert.equal((await run(['replay', '--yes', dir])).code, 0);
   assert.equal((await run(['replay', dir, '--yes'])).code, 0);
+});
+
+test('capture --max-bytes bounds multibyte stdout and stderr in generated files', async () => {
+  const out = await mkdtemp(path.join(os.tmpdir(), 'bugrepro-cli-'));
+  const script = "process.stdout.write('x😀😀'); process.stderr.write('y界界')";
+  const result = await run(['capture', '--out', out, '--max-bytes', '4', '--', process.execPath, '-e', script]);
+
+  assert.equal(result.code, 0);
+  const manifest = JSON.parse(await readFile(path.join(out, 'repro.json'), 'utf8'));
+  assert.equal(manifest.command.stdout, '😀');
+  assert.equal(manifest.command.stderr, '界');
+  assert.equal(Buffer.byteLength(manifest.command.stdout, 'utf8'), 4);
+  assert.equal(Buffer.byteLength(manifest.command.stderr, 'utf8'), 3);
+  assert.doesNotMatch(await readFile(path.join(out, 'REPRO.md'), 'utf8'), /\uFFFD/);
 });
 
 for (const [name, args, message] of [
