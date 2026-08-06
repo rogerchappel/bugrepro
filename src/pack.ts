@@ -3,16 +3,37 @@ import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { ensureDir, pathExists } from './fs-utils.js';
+import { validateManifest } from './validate.js';
 
 export async function packBundle(inputDir: string, outputFile?: string): Promise<string> {
-  const reproJson = path.join(inputDir, 'repro.json');
-  const reproMd = path.join(inputDir, 'REPRO.md');
+  const resolvedInput = path.resolve(inputDir);
+  const reproJson = path.join(resolvedInput, 'repro.json');
+  const reproMd = path.join(resolvedInput, 'REPRO.md');
   if (!await pathExists(reproJson) || !await pathExists(reproMd)) {
     throw new Error(`Expected repro.json and REPRO.md in ${inputDir}`);
   }
-  const target = outputFile ?? path.resolve(process.cwd(), `${path.basename(path.resolve(inputDir)) || 'repro'}.tar.gz`);
+
+  let manifest: unknown;
+  try {
+    manifest = JSON.parse(await fs.readFile(reproJson, 'utf8')) as unknown;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`Invalid repro.json: ${message}`);
+  }
+  try {
+    validateManifest(manifest);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`Invalid repro.json: ${message}`);
+  }
+
+  const target = path.resolve(outputFile ?? path.join(process.cwd(), `${path.basename(resolvedInput) || 'repro'}.tar.gz`));
+  const relativeTarget = path.relative(resolvedInput, target);
+  if (relativeTarget === '' || (!relativeTarget.startsWith(`..${path.sep}`) && relativeTarget !== '..' && !path.isAbsolute(relativeTarget))) {
+    throw new Error('Archive output must be outside the input bundle');
+  }
   await ensureDir(path.dirname(target));
-  await tarGzip(inputDir, target);
+  await tarGzip(resolvedInput, target);
   return target;
 }
 
