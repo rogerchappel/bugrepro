@@ -44,6 +44,11 @@ Pack the bundle:
 bugrepro pack .repro --out repro.tar.gz
 ```
 
+Packing requires both `REPRO.md` and a valid `repro.json`; the manifest command
+must be a non-empty array of strings. The archive output must be outside the
+input bundle so that an archive can never include itself. Without `--out`, the
+archive is written in the current directory as `<bundle-name>.tar.gz`.
+
 Replay after unpacking and reviewing the command:
 
 ```bash
