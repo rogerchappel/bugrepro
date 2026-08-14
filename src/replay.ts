@@ -29,7 +29,7 @@ export async function replay(bundleDir: string, assumeYes = false): Promise<numb
     rl.close();
     if (answer.trim().toLowerCase() !== 'yes') return 130;
   }
-  const cwd = path.join(bundleDir, 'fixtures');
+  const cwd = manifest.fixtures.length > 0 ? path.join(bundleDir, 'fixtures') : bundleDir;
   const run = await runCommand(manifest.command.command, cwd, 64_000);
   if (run.stdout) process.stdout.write(run.stdout);
   if (run.stderr) process.stderr.write(run.stderr);
