@@ -18,7 +18,7 @@ Bug reports are either vague or accidentally leak sensitive data. Developers and
 - `bugrepro capture -- <cmd>` records command, exit code, selected stdout/stderr, platform/tool versions, git facts, and optional fixture globs.
 - `bugrepro redact` applies default and custom redaction rules.
 - `bugrepro pack` writes a tarball/zip plus `REPRO.md` and `repro.json`.
-- `bugrepro replay` runs the captured command in the unpacked fixture directory with confirmation prompts for unsafe commands.
+- `bugrepro replay` runs the captured command in the unpacked fixture directory, or the bundle directory when no fixtures were captured, with confirmation prompts for unsafe commands.
 - Tests for redaction, manifests, replay safety, and fixture packaging.
 
 ## Non-goals
