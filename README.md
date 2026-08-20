@@ -81,6 +81,11 @@ for a short recording outline.
 - only fixture files you explicitly name
 - `REPRO.md` for humans and `repro.json` for tools
 
+Every requested fixture must exist. Capture fails with the requested path before
+writing a bundle when evidence is missing. Files outside the capture working
+directory use their basename; if two requested sources would map to the same
+bundled path, capture fails and reports both sources instead of overwriting one.
+
 ## Safety
 
 - Review `REPRO.md` before sharing.
