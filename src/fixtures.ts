@@ -1,12 +1,14 @@
 import path from 'node:path';
 import { promises as fs } from 'node:fs';
-import { copyFilePreservingPath, listFiles, pathExists } from './fs-utils.js';
+import { copyFilePreservingPath, listFiles, pathExists, safeRelativePath } from './fs-utils.js';
 
 export async function expandFixtureInputs(cwd: string, inputs: string[]): Promise<string[]> {
   const files = new Set<string>();
   for (const input of inputs) {
     const resolved = path.resolve(cwd, input);
-    if (!await pathExists(resolved)) continue;
+    if (!await pathExists(resolved)) {
+      throw new Error(`Requested fixture does not exist: ${input} (${resolved})`);
+    }
     const stat = await fs.stat(resolved);
     if (stat.isDirectory()) {
       for (const file of await listFiles(resolved)) files.add(file);
@@ -14,7 +16,17 @@ export async function expandFixtureInputs(cwd: string, inputs: string[]): Promis
       files.add(resolved);
     }
   }
-  return [...files].sort();
+  const expanded = [...files].sort();
+  const destinations = new Map<string, string>();
+  for (const file of expanded) {
+    const bundledPath = path.join('fixtures', safeRelativePath(cwd, file));
+    const previous = destinations.get(bundledPath);
+    if (previous && previous !== file) {
+      throw new Error(`Requested fixtures collide at ${bundledPath}: ${previous} and ${file}`);
+    }
+    destinations.set(bundledPath, file);
+  }
+  return expanded;
 }
 
 export async function copyFixtures(cwd: string, outputDir: string, inputs: string[]): Promise<Array<{ source: string; bundledPath: string; bytes: number }>> {
