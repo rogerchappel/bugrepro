@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, readFile } from 'node:fs/promises';
+import { mkdtemp, mkdir, readFile, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { capture, defaultCaptureOptions } from '../dist/index.js';
@@ -57,4 +57,39 @@ test('capture preserves ASCII tail-retention behavior', async () => {
 
   assert.equal(manifest.command.stdout, '3456');
   assert.equal(manifest.command.stderr, 'cdef');
+});
+
+test('capture rejects external fixtures that map to the same bundled path', async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'bugrepro-collision-'));
+  const cwd = path.join(root, 'project');
+  const first = path.join(root, 'a', 'input.txt');
+  const second = path.join(root, 'b', 'input.txt');
+  await mkdir(cwd);
+  await mkdir(path.dirname(first));
+  await mkdir(path.dirname(second));
+  await writeFile(first, 'first');
+  await writeFile(second, 'second');
+
+  await assert.rejects(
+    capture(defaultCaptureOptions([process.execPath, '-e', 'process.exit(1)'], {
+      cwd,
+      outputDir: path.join(root, 'bundle'),
+      fixtures: [first, second]
+    })),
+    /Requested fixtures collide at fixtures\/input\.txt:.*a.*input\.txt.*b.*input\.txt/
+  );
+});
+
+test('capture reports a missing requested fixture before writing a bundle', async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'bugrepro-missing-'));
+  const outputDir = path.join(root, 'bundle');
+  await assert.rejects(
+    capture(defaultCaptureOptions([process.execPath, '-e', 'process.exit(1)'], {
+      cwd: root,
+      outputDir,
+      fixtures: ['missing.txt']
+    })),
+    /Requested fixture does not exist: missing\.txt \(.*missing\.txt\)/
+  );
+  await assert.rejects(readFile(path.join(outputDir, 'repro.json')), /ENOENT/);
 });
