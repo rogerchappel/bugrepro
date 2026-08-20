@@ -1,6 +1,6 @@
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
-import { copyFixtures } from './fixtures.js';
+import { copyFixtures, expandFixtureInputs } from './fixtures.js';
 import { ensureDir } from './fs-utils.js';
 import { runCommand } from './exec.js';
 import { collectEnvironmentFacts, collectGitFacts } from './facts.js';
@@ -9,6 +9,8 @@ import { renderReproMarkdown } from './repro-md.js';
 import type { CaptureOptions, ReproManifest, RedactionRule } from './types.js';
 
 export async function capture(options: CaptureOptions): Promise<ReproManifest> {
+  // Validate all requested evidence before creating or changing the bundle.
+  await expandFixtureInputs(options.cwd, options.fixtures);
   await ensureDir(options.outputDir);
   const command = await runCommand(options.command, options.cwd, options.maxBytes);
   const rules = [...defaultRedactionRules, ...options.redactRules];
