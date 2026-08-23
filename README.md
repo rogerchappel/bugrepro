@@ -6,14 +6,12 @@ Tiny, polite repro bundles for bugs that need more than "it broke on my machine"
 
 ## Install
 
-```bash
-npm install -g bugrepro
-```
-
-From a checkout:
+> **Not yet published:** `bugrepro` does not have a public npm release yet.
+> Until the first release is published, install and run it from a source
+> checkout:
 
 ```bash
-npm install
+npm ci
 npm run build
 node dist/cli.js --help
 ```
@@ -123,6 +121,10 @@ npm run release:check
 ```
 
 ## Releases
+
+There is no public npm release yet. After the first reviewed release is
+published, this section and the installation instructions will be updated with
+the registry command.
 
 Pushing a `v*.*.*` tag runs the reviewed release workflow. The workflow checks
 ReleaseBox readiness and the full release suite, then publishes the package to
