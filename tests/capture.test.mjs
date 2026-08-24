@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, mkdir, readFile, writeFile } from 'node:fs/promises';
+import { access, mkdtemp, mkdir, readFile, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { capture, defaultCaptureOptions } from '../dist/index.js';
@@ -19,6 +19,36 @@ test('capture writes redacted manifest and fixture copy', async () => {
   assert.match(manifest.command.stdout, /\[REDACTED:SECRET\]/);
   assert.equal(manifest.fixtures[0].bundledPath, 'fixtures/input.txt');
   assert.match(await readFile(path.join(out, 'REPRO.md'), 'utf8'), /boom from fixture/);
+  assert.match(await readFile(path.join(out, 'fixtures/input.txt'), 'utf8'), /hello fixture/);
+});
+
+test('capture replaces an existing bundle without retaining stale fixtures', async () => {
+  const out = await mkdtemp(path.join(os.tmpdir(), 'bugrepro-replace-'));
+  await capture(defaultCaptureOptions(['node', 'fail.mjs'], {
+    cwd: fixtureRoot, outputDir: out, fixtures: ['input.txt']
+  }));
+
+  const manifest = await capture(defaultCaptureOptions(['node', 'fail.mjs'], {
+    cwd: fixtureRoot, outputDir: out, fixtures: []
+  }));
+
+  assert.deepEqual(manifest.fixtures, []);
+  await assert.rejects(access(path.join(out, 'fixtures/input.txt')));
+  assert.deepEqual(JSON.parse(await readFile(path.join(out, 'repro.json'), 'utf8')).fixtures, []);
+});
+
+test('capture preserves an existing bundle when fixture preflight fails', async () => {
+  const out = await mkdtemp(path.join(os.tmpdir(), 'bugrepro-preflight-'));
+  await capture(defaultCaptureOptions(['node', 'fail.mjs'], {
+    cwd: fixtureRoot, outputDir: out, fixtures: ['input.txt']
+  }));
+  const originalManifest = await readFile(path.join(out, 'repro.json'), 'utf8');
+
+  await assert.rejects(capture(defaultCaptureOptions(['node', 'fail.mjs'], {
+    cwd: fixtureRoot, outputDir: out, fixtures: ['missing.txt']
+  })), /Fixture does not exist: missing\.txt/);
+
+  assert.equal(await readFile(path.join(out, 'repro.json'), 'utf8'), originalManifest);
   assert.match(await readFile(path.join(out, 'fixtures/input.txt'), 'utf8'), /hello fixture/);
 });
 
