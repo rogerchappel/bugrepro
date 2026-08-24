@@ -46,7 +46,7 @@ test('capture preserves an existing bundle when fixture preflight fails', async 
 
   await assert.rejects(capture(defaultCaptureOptions(['node', 'fail.mjs'], {
     cwd: fixtureRoot, outputDir: out, fixtures: ['missing.txt']
-  })), /Fixture does not exist: missing\.txt/);
+  })), /Requested fixture does not exist: missing\.txt/);
 
   assert.equal(await readFile(path.join(out, 'repro.json'), 'utf8'), originalManifest);
   assert.match(await readFile(path.join(out, 'fixtures/input.txt'), 'utf8'), /hello fixture/);
