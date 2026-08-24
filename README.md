@@ -30,6 +30,11 @@ ceiling, `bugrepro` keeps its tail and drops any leading partial UTF-8
 character, so `REPRO.md` and `repro.json` always contain valid UTF-8 text. A
 complete character larger than the ceiling is omitted.
 
+Capturing to an existing `--out` path replaces the bundle as one unit, so files
+from an earlier capture cannot leak into the new manifest or archive. Requested
+fixtures are checked before replacement; if one is missing or invalid, the
+existing bundle is left unchanged.
+
 Redact a log with a custom rule:
 
 ```bash
