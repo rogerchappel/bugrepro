@@ -15,10 +15,15 @@ export function commandNeedsConfirmation(command: string[]): boolean {
 }
 
 export async function loadManifest(bundleDir: string): Promise<ReproManifest> {
-  const raw = await fs.readFile(path.join(bundleDir, 'repro.json'), 'utf8');
-  const parsed = JSON.parse(raw) as unknown;
-  validateManifest(parsed);
-  return parsed;
+  try {
+    const raw = await fs.readFile(path.join(bundleDir, 'repro.json'), 'utf8');
+    const parsed = JSON.parse(raw) as unknown;
+    validateManifest(parsed);
+    return parsed;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`Invalid repro.json: ${message}`);
+  }
 }
 
 export async function replay(bundleDir: string, assumeYes = false): Promise<number | null> {
