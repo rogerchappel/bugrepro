@@ -7,8 +7,9 @@ import { packBundle } from '../dist/index.js';
 
 const validManifest = {
   schemaVersion: 1,
-  command: { command: ['node', '-v'] },
-  environment: { node: process.version },
+  createdAt: '2026-08-27T00:00:00.000Z',
+  command: { command: ['node', '-v'], cwd: '.', exitCode: 0, signal: null, stdout: '', stderr: '', startedAt: '', finishedAt: '', durationMs: 0 },
+  environment: { platform: process.platform, arch: process.arch, node: process.version },
   fixtures: [],
   redactions: []
 };
@@ -51,6 +52,16 @@ test('rejects malformed repro.json before creating an archive', async () => {
   await writeBundle(dir, {});
   const out = path.join(parent, 'invalid.tar.gz');
   await assert.rejects(packBundle(dir, out), /Invalid repro\.json: Unsupported manifest schemaVersion/);
+  await assert.rejects(readFile(out), { code: 'ENOENT' });
+});
+
+test('rejects malformed fixture entries before creating an archive', async () => {
+  const parent = await mkdtemp(path.join(os.tmpdir(), 'bugrepro-pack-fixture-invalid-'));
+  const dir = path.join(parent, 'bundle');
+  await mkdir(dir);
+  await writeBundle(dir, { ...validManifest, fixtures: [{}] });
+  const out = path.join(parent, 'invalid.tar.gz');
+  await assert.rejects(packBundle(dir, out), /Invalid repro\.json: Manifest fixtures\[0\]\.source must be a string/);
   await assert.rejects(readFile(out), { code: 'ENOENT' });
 });
 

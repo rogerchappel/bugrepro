@@ -59,3 +59,14 @@ test('replays zero-fixture bundles from the existing bundle directory', async ()
 
   assert.equal(await replay(dir, true), 0);
 });
+
+test('rejects malformed fixture entries before replay starts', async () => {
+  const dir = await mkdtemp(path.join(os.tmpdir(), 'bugrepro-replay-invalid-'));
+  await writeFile(path.join(dir, 'repro.json'), JSON.stringify({
+    schemaVersion: 1, createdAt: new Date().toISOString(),
+    command: { command: ['cat', 'missing.txt'], cwd: '.', exitCode: 0, signal: null, stdout: '', stderr: '', startedAt: '', finishedAt: '', durationMs: 0 },
+    environment: { platform: process.platform, arch: process.arch, node: process.version },
+    git: {}, fixtures: [{}], redactions: []
+  }));
+  await assert.rejects(replay(dir, false), /Invalid repro\.json: Manifest fixtures\[0\]\.source must be a string/);
+});
