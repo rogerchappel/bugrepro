@@ -46,7 +46,7 @@ export type ReproManifest = {
   createdAt: string;
   command: CommandRun;
   environment: EnvironmentFacts;
-  git: GitFacts;
+  git?: GitFacts;
   fixtures: Array<{ source: string; bundledPath: string; bytes: number }>;
   redactions: string[];
 };
