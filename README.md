@@ -48,9 +48,16 @@ bugrepro pack .repro --out repro.tar.gz
 ```
 
 Packing requires both `REPRO.md` and a valid `repro.json`; the manifest command
-must be a non-empty array of strings. The archive output must be outside the
-input bundle so that an archive can never include itself. Without `--out`, the
-archive is written in the current directory as `<bundle-name>.tar.gz`.
+must be a non-empty array of strings. Before packing or replaying, bugrepro
+validates the complete persisted schema: capture timestamps and command result,
+platform/runtime facts, every fixture's source, bundled path and byte count,
+string redaction names, and optional Git facts. Invalid data fails with an
+`Invalid repro.json` diagnostic before an archive is created or a command is
+started. Schema version `1` is the compatibility boundary; consumers should
+reject other versions instead of guessing their shape. The archive output must
+be outside the input bundle so that an archive can never include itself.
+Without `--out`, the archive is written in the current directory as
+`<bundle-name>.tar.gz`.
 
 Replay after unpacking and reviewing the command:
 
