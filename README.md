@@ -58,6 +58,9 @@ reject other versions instead of guessing their shape. The archive output must
 be outside the input bundle so that an archive can never include itself.
 Without `--out`, the archive is written in the current directory as
 `<bundle-name>.tar.gz`.
+Packing writes to a temporary sibling and publishes it only after both `tar`
+and the output stream finish successfully. If spawning, writing, or `tar` fails,
+the temporary output is removed and any pre-existing target is left unchanged.
 
 Replay after unpacking and reviewing the command:
 
