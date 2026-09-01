@@ -38,19 +38,51 @@ export async function packBundle(inputDir: string, outputFile?: string): Promise
 }
 
 async function tarGzip(inputDir: string, outputFile: string): Promise<void> {
-  await new Promise<void>((resolve, reject) => {
-    const out = createWriteStream(outputFile);
-    const tar = spawn('tar', ['-czf', '-', '-C', inputDir, '.'], { stdio: ['ignore', 'pipe', 'pipe'] });
-    let stderr = '';
-    tar.stdout.pipe(out);
-    tar.stderr.on('data', (chunk: Buffer) => { stderr += chunk.toString('utf8'); });
-    tar.on('error', reject);
-    out.on('error', reject);
-    out.on('finish', () => resolve());
-    tar.on('close', (code) => {
-      if (code !== 0) reject(new Error(`tar failed: ${stderr.trim()}`));
+  const temporaryFile = `${outputFile}.tmp-${process.pid}-${Date.now()}`;
+  try {
+    await new Promise<void>((resolve, reject) => {
+      const out = createWriteStream(temporaryFile, { flags: 'wx' });
+      const tar = spawn('tar', ['-czf', '-', '-C', inputDir, '.'], { stdio: ['ignore', 'pipe', 'pipe'] });
+      let stderr = '';
+      let tarClosed = false;
+      let outputFinished = false;
+      let settled = false;
+      const fail = (error: Error) => {
+        if (settled) return;
+        settled = true;
+        tar.stdout.unpipe(out);
+        out.destroy();
+        reject(error);
+      };
+      const succeedIfComplete = () => {
+        if (!settled && tarClosed && outputFinished) {
+          settled = true;
+          resolve();
+        }
+      };
+      tar.stdout.pipe(out);
+      tar.stderr.on('data', (chunk: Buffer) => { stderr += chunk.toString('utf8'); });
+      tar.on('error', fail);
+      tar.stdout.on('error', fail);
+      out.on('error', fail);
+      out.on('finish', () => {
+        outputFinished = true;
+        succeedIfComplete();
+      });
+      tar.on('close', (code) => {
+        if (code !== 0) {
+          fail(new Error(`tar failed${stderr.trim() ? `: ${stderr.trim()}` : ` with exit code ${code}`}`));
+          return;
+        }
+        tarClosed = true;
+        succeedIfComplete();
+      });
     });
-  });
-  const stat = await fs.stat(outputFile);
-  if (stat.size === 0) throw new Error(`Created empty archive ${outputFile}`);
+    const stat = await fs.stat(temporaryFile);
+    if (stat.size === 0) throw new Error(`Created empty archive ${outputFile}`);
+    await fs.rename(temporaryFile, outputFile);
+  } catch (error) {
+    await fs.rm(temporaryFile, { force: true });
+    throw error;
+  }
 }
