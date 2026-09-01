@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
-import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises';
+import { chmod, mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
@@ -9,9 +9,9 @@ import { promisify } from 'node:util';
 const execFileAsync = promisify(execFile);
 const cli = path.resolve('dist/cli.js');
 
-async function run(args) {
+async function run(args, options = {}) {
   try {
-    return { ...(await execFileAsync(process.execPath, [cli, ...args])), code: 0 };
+    return { ...(await execFileAsync(process.execPath, [cli, ...args], options)), code: 0 };
   } catch (error) {
     return { stdout: error.stdout, stderr: error.stderr, code: error.code };
   }
@@ -48,6 +48,23 @@ test('capture --max-bytes bounds multibyte stdout and stderr in generated files'
   assert.equal(Buffer.byteLength(manifest.command.stdout, 'utf8'), 4);
   assert.equal(Buffer.byteLength(manifest.command.stderr, 'utf8'), 3);
   assert.doesNotMatch(await readFile(path.join(out, 'REPRO.md'), 'utf8'), /\uFFFD/);
+});
+
+test('pack exits nonzero without success JSON when tar fails after writing bytes', async () => {
+  const dir = await replayBundle();
+  await writeFile(path.join(dir, 'REPRO.md'), '# repro\n');
+  const bin = await mkdtemp(path.join(os.tmpdir(), 'bugrepro-cli-bin-'));
+  const fakeTar = path.join(bin, 'tar');
+  await writeFile(fakeTar, '#!/bin/sh\nprintf partial\nprintf "synthetic tar failure\\n" >&2\nexit 2\n');
+  await chmod(fakeTar, 0o755);
+  const out = path.join(path.dirname(dir), 'failed.tar.gz');
+  const result = await run(['pack', dir, '--out', out], {
+    env: { ...process.env, PATH: `${bin}${path.delimiter}${process.env.PATH ?? ''}` }
+  });
+  assert.equal(result.code, 1);
+  assert.equal(result.stdout, '');
+  assert.match(result.stderr, /tar failed: synthetic tar failure/);
+  await assert.rejects(readFile(out), { code: 'ENOENT' });
 });
 
 for (const [name, args, message] of [
