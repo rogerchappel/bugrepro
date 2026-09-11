@@ -9,6 +9,8 @@ format and uses semantic versioning when versioned releases are published.
 
 ### Fixed
 
+- Terminate the `tar` helper when packing fails, so a failed `bugrepro pack`
+  exits after reporting the error instead of hanging on an unread output pipe.
 - Require replay confirmation for interpreters and other code-executing commands.
 - Publish tagged release artifacts to npm so the documented install command works.
 
