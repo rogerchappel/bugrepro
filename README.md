@@ -60,7 +60,9 @@ Without `--out`, the archive is written in the current directory as
 `<bundle-name>.tar.gz`.
 Packing writes to a temporary sibling and publishes it only after both `tar`
 and the output stream finish successfully. If spawning, writing, or `tar` fails,
-the temporary output is removed and any pre-existing target is left unchanged.
+the temporary output is removed, any running `tar` helper is terminated, and any
+pre-existing target is left unchanged, so a failed pack reports the error and the
+command exits rather than hanging on the abandoned archive.
 
 Replay after unpacking and reviewing the command:
 
