@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { existsSync } from 'node:fs';
+import { existsSync, openSync, closeSync } from 'node:fs';
 import { chmod, mkdir, mkdtemp, readFile, readdir, writeFile, stat } from 'node:fs/promises';
 import { spawnSync } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
@@ -222,5 +222,50 @@ test('leaves no running tar helper when the archive cannot be written', async (t
     }
     await chmod(targetDir, 0o755);
   }
+  assert.deepEqual((await readdir(targetDir)).filter((entry) => entry.startsWith('bundle.tar.gz.tmp-')), []);
+});
+
+// The reported symptom was a hung `bugrepro pack` process, so cover it through
+// the real CLI as well as through packBundle().
+test('exits the pack command promptly when the archive cannot be written', async (t) => {
+  if (process.platform === 'win32') {
+    t.skip('this regression needs POSIX directory permissions and process ids');
+    return;
+  }
+  if (typeof process.getuid === 'function' && process.getuid() === 0) {
+    t.skip('root bypasses directory write permissions, so the write cannot be forced to fail');
+    return;
+  }
+  if (!resolveSystemTar()) {
+    t.skip('no system tar available');
+    return;
+  }
+  const parent = await mkdtemp(path.join(os.tmpdir(), 'bugrepro-pack-cli-hang-'));
+  const dir = path.join(parent, 'bundle');
+  const targetDir = path.join(parent, 'out');
+  await mkdir(dir);
+  await mkdir(targetDir);
+  await writeBundle(dir);
+  await writeFile(path.join(dir, 'payload.bin'), randomBytes(512 * 1024));
+  await chmod(targetDir, 0o555);
+  const stderrFile = path.join(parent, 'pack.err');
+  const stderrHandle = openSync(stderrFile, 'w');
+  let result;
+  try {
+    // Discarded stdio keeps the blocked helper from holding this test process
+    // open, so a hang surfaces as a bounded timeout instead of a stalled suite.
+    result = spawnSync(process.execPath, [path.resolve('dist/cli.js'), 'pack', dir, '--out', path.join(targetDir, 'bundle.tar.gz')], {
+      timeout: 8000,
+      stdio: ['ignore', 'ignore', stderrHandle]
+    });
+  } finally {
+    closeSync(stderrHandle);
+    await chmod(targetDir, 0o755);
+  }
+  const stderr = await readFile(stderrFile, 'utf8');
+  assert.equal(result.error, undefined, `the pack command must exit on its own, not hang: ${stderr}`);
+  assert.match(stderr, /EACCES|EPERM/);
+  assert.equal(result.status, 1);
+  assert.equal(existsSync(path.join(targetDir, 'bundle.tar.gz')), false);
   assert.deepEqual((await readdir(targetDir)).filter((entry) => entry.startsWith('bundle.tar.gz.tmp-')), []);
 });
