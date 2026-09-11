@@ -2,6 +2,7 @@ import { createWriteStream } from 'node:fs';
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
+import type { ChildProcess } from 'node:child_process';
 import { ensureDir, pathExists } from './fs-utils.js';
 import { validateManifest } from './validate.js';
 
@@ -52,6 +53,7 @@ async function tarGzip(inputDir: string, outputFile: string): Promise<void> {
         settled = true;
         tar.stdout.unpipe(out);
         out.destroy();
+        terminateTar(tar);
         reject(error);
       };
       const succeedIfComplete = () => {
@@ -84,5 +86,20 @@ async function tarGzip(inputDir: string, outputFile: string): Promise<void> {
   } catch (error) {
     await fs.rm(temporaryFile, { force: true });
     throw error;
+  }
+}
+
+// Abandoning the archive also abandons the pipe its stdout flows into. Once the
+// destination is gone nothing drains that pipe, so a tar helper with more than
+// the ~64 KB buffer left to write blocks forever and keeps the event loop
+// alive: the pack rejects, but the process never exits. Release both ends and
+// terminate the helper on every path that gives up on the archive.
+function terminateTar(tar: ChildProcess): void {
+  tar.stdout?.destroy();
+  tar.stderr?.destroy();
+  try {
+    tar.kill('SIGKILL');
+  } catch {
+    // The helper had already exited.
   }
 }
