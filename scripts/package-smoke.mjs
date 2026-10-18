@@ -13,6 +13,16 @@ const [packument] = JSON.parse(output);
 const packedFiles = new Set(packument.files.map((file) => file.path));
 const requiredFiles = new Set(["README.md", "LICENSE"]);
 
+// Keep the documented executable example and its fixture in the published
+// artifact; these paths are part of the package smoke contract.
+for (const example of [
+  "examples/README.md",
+  "examples/minimal/fail.mjs",
+  "examples/minimal/input.txt",
+]) {
+  requiredFiles.add(example);
+}
+
 if (packageJson.main) {
   requiredFiles.add(packageJson.main.replace(/^\.\//, ""));
 }
