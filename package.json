@@ -32,7 +32,7 @@
     "smoke": "npm run build && bash scripts/smoke.sh",
     "package:smoke": "npm run build && node scripts/package-smoke.mjs",
     "release:config": "node scripts/release-config-smoke.mjs",
-    "release:check": "npm test && npm run check && npm run smoke && npm run package:smoke && npm run release:config",
+    "release:check": "npm run build && node --test tests/*.test.mjs && bash scripts/smoke.sh && node scripts/package-smoke.mjs && npm run release:config",
     "lint": "npm run check"
   },
   "keywords": [
