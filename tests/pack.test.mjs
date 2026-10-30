@@ -114,6 +114,36 @@ test('preserves an existing target and removes partial output when tar fails', a
   assert.deepEqual((await readdir(parent)).filter((entry) => entry.startsWith('bundle.tar.gz.tmp-')), []);
 });
 
+test('settles and removes temporary output when tar fails after filling the stdout pipe', async () => {
+  const parent = await mkdtemp(path.join(os.tmpdir(), 'bugrepro-pack-pipe-failure-'));
+  const dir = path.join(parent, 'bundle');
+  const bin = path.join(parent, 'bin');
+  await mkdir(dir);
+  await mkdir(bin);
+  await writeBundle(dir);
+  const fakeTar = path.join(bin, 'tar');
+  // Emit well beyond a typical pipe buffer before failing. If stdout is no
+  // longer drained when the destination stream errors, this child can hang.
+  await writeFile(fakeTar, '#!/usr/bin/env node\nprocess.stdout.write(Buffer.alloc(1024 * 1024));\nprocess.stderr.write("synthetic tar failure\n");\nprocess.exitCode = 2;\n');
+  await chmod(fakeTar, 0o755);
+  const targetDir = path.join(parent, 'out');
+  await mkdir(targetDir);
+  await chmod(targetDir, 0o555);
+  const out = path.join(targetDir, 'bundle.tar.gz');
+  const previousPath = process.env.PATH;
+  process.env.PATH = `${bin}${path.delimiter}${previousPath ?? ''}`;
+  try {
+    await assert.rejects(Promise.race([
+      packBundle(dir, out),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('pack rejection hung')), 5000))
+    ]), /EACCES|EPERM/);
+  } finally {
+    process.env.PATH = previousPath;
+    await chmod(targetDir, 0o755);
+  }
+  assert.deepEqual((await readdir(targetDir)).filter((entry) => entry.startsWith('bundle.tar.gz.tmp-')), []);
+});
+
 test('uses a default archive path outside the bundle', async () => {
   const parent = await mkdtemp(path.join(os.tmpdir(), 'bugrepro-pack-default-'));
   const dir = path.join(parent, 'bundle');
