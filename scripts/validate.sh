@@ -120,7 +120,7 @@ run_package_script() {
   esac
 }
 
-printf 'Checking ../bugrepro required files...\n'
+printf 'Checking bugrepro required files...\n'
 
 check_file "README.md"
 check_file "AGENTS.md"
@@ -129,7 +129,7 @@ check_file "SECURITY.md"
 check_file ".github/pull_request_template.md"
 check_file "scripts/validate.sh"
 
-printf '\nChecking ../bugrepro required directories...\n'
+printf '\nChecking bugrepro required directories...\n'
 
 check_dir ".github"
 check_dir "docs"
