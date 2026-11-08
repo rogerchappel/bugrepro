@@ -7,7 +7,9 @@ This directory holds project documentation.
 - [Contributing guide](../CONTRIBUTING.md)
 - [Security policy](../SECURITY.md)
 - [Agent instructions](../AGENTS.md)
-
-## Additional docs
-
-For a hosted documentation site, see the `docs-site/` directory if present.
+- [Redaction guidance](redaction.md)
+- [Replay safety](replay-safety.md)
+- [Minimal repro tutorial](tutorials/capture-a-minimal-repro.md)
+- [Orchestration](ORCHESTRATION.md)
+- [Product requirements](PRD.md)
+- [Tasks](TASKS.md)
