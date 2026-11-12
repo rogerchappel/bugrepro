@@ -5,8 +5,8 @@ export const defaultRedactionRules: RedactionRule[] = [
   { name: 'generic-secret-assignment', pattern: '(api[_-]?key|token|secret|password)([=:\\s]+)([^\\s,;]+)', replacement: '$1$2[REDACTED:SECRET]', flags: 'gi' },
   { name: 'bearer-token', pattern: 'Bearer\\s+[A-Za-z0-9._~+/-]+=*', replacement: 'Bearer [REDACTED:TOKEN]', flags: 'gi' },
   { name: 'private-key', pattern: '-----BEGIN [A-Z ]*PRIVATE KEY-----[\\s\\S]*?-----END [A-Z ]*PRIVATE KEY-----', replacement: '[REDACTED:PRIVATE_KEY]', flags: 'g' },
-  { name: 'home-directory', pattern: escapeRegExp(process.env.HOME ?? ''), replacement: '~', flags: 'g' }
-].filter((rule) => rule.pattern.length > 0);
+  ...(process.env.HOME ? [{ name: 'home-directory', pattern: escapeRegExp(process.env.HOME), replacement: '~', flags: 'g' }] : [])
+];
 
 export function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
