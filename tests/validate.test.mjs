@@ -30,6 +30,16 @@ test('accepts minimal valid manifests', () => {
   assert.doesNotThrow(() => validateManifest(withoutGit));
 });
 
+test('rejects malformed timestamps while accepting valid serialized timestamps', () => {
+  for (const value of ['not-a-date', '', 'not-a-date-extra']) {
+    assert.throws(() => validateManifest({ ...validManifest, createdAt: value }), /Manifest createdAt must be a valid timestamp/);
+    for (const field of ['startedAt', 'finishedAt']) {
+      assert.throws(() => validateManifest({ ...validManifest, command: { ...validManifest.command, [field]: value } }), new RegExp(`Manifest command\\.${field} must be a valid timestamp`));
+    }
+  }
+  assert.doesNotThrow(() => validateManifest(validManifest));
+});
+
 test('rejects malformed persisted command and environment fields', () => {
   for (const [field, value] of [['cwd', 1], ['exitCode', '0'], ['signal', 9], ['stdout', null], ['stderr', []], ['startedAt', 1], ['finishedAt', false], ['durationMs', -1]]) {
     assert.throws(() => validateManifest({ ...validManifest, command: { ...validManifest.command, [field]: value } }), new RegExp(`Manifest command\\.${field}`));

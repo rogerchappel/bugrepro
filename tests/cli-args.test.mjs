@@ -23,7 +23,7 @@ async function replayBundle() {
   await writeFile(path.join(dir, 'repro.json'), JSON.stringify({
     schemaVersion: 1,
     createdAt: new Date().toISOString(),
-    command: { command: [process.execPath, '-e', 'process.exit(0)'], cwd: '.', exitCode: 0, signal: null, stdout: '', stderr: '', startedAt: '', finishedAt: '', durationMs: 0 },
+    command: { command: [process.execPath, '-e', 'process.exit(0)'], cwd: '.', exitCode: 0, signal: null, stdout: '', stderr: '', startedAt: '2026-08-27T00:00:00.000Z', finishedAt: '2026-08-27T00:00:01.000Z', durationMs: 0 },
     environment: { platform: 'test', arch: 'test', node: process.version },
     git: {}, fixtures: [], redactions: []
   }));
