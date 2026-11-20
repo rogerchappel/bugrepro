@@ -11,7 +11,7 @@ import { packBundle } from '../dist/index.js';
 const validManifest = {
   schemaVersion: 1,
   createdAt: '2026-08-27T00:00:00.000Z',
-  command: { command: ['node', '-v'], cwd: '.', exitCode: 0, signal: null, stdout: '', stderr: '', startedAt: '', finishedAt: '', durationMs: 0 },
+  command: { command: ['node', '-v'], cwd: '.', exitCode: 0, signal: null, stdout: '', stderr: '', startedAt: '2026-08-27T00:00:00.000Z', finishedAt: '2026-08-27T00:00:01.000Z', durationMs: 0 },
   environment: { platform: process.platform, arch: process.arch, node: process.version },
   fixtures: [],
   redactions: []

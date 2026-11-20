@@ -12,10 +12,15 @@ function optionalString(value: unknown, path: string): void {
   if (value !== undefined) requireString(value, path);
 }
 
+function requireTimestamp(value: unknown, path: string): void {
+  requireString(value, path);
+  if (typeof value !== 'string' || !Number.isFinite(Date.parse(value))) throw new Error(`${path} must be a valid timestamp`);
+}
+
 export function validateManifest(value: unknown): asserts value is ReproManifest {
   if (!isRecord(value)) throw new Error('Manifest must be an object');
   if (value.schemaVersion !== 1) throw new Error('Unsupported manifest schemaVersion');
-  requireString(value.createdAt, 'Manifest createdAt');
+  requireTimestamp(value.createdAt, 'Manifest createdAt');
 
   if (!isRecord(value.command)) throw new Error('Manifest command is missing');
   const command = value.command;
@@ -27,8 +32,8 @@ export function validateManifest(value: unknown): asserts value is ReproManifest
   if (command.signal !== null && typeof command.signal !== 'string') throw new Error('Manifest command.signal must be a string or null');
   requireString(command.stdout, 'Manifest command.stdout');
   requireString(command.stderr, 'Manifest command.stderr');
-  requireString(command.startedAt, 'Manifest command.startedAt');
-  requireString(command.finishedAt, 'Manifest command.finishedAt');
+  requireTimestamp(command.startedAt, 'Manifest command.startedAt');
+  requireTimestamp(command.finishedAt, 'Manifest command.finishedAt');
   if (typeof command.durationMs !== 'number' || !Number.isFinite(command.durationMs) || command.durationMs < 0) {
     throw new Error('Manifest command.durationMs must be a non-negative number');
   }

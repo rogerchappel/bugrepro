@@ -20,7 +20,7 @@ test('replays non-code-executing commands without confirmation', async () => {
   await writeFile(path.join(dir, 'repro.json'), JSON.stringify({
     schemaVersion: 1,
     createdAt: new Date().toISOString(),
-    command: { command: ['cat', 'empty.txt'], cwd: '.', exitCode: 0, signal: null, stdout: '', stderr: '', startedAt: '', finishedAt: '', durationMs: 0 },
+    command: { command: ['cat', 'empty.txt'], cwd: '.', exitCode: 0, signal: null, stdout: '', stderr: '', startedAt: '2026-08-27T00:00:00.000Z', finishedAt: '2026-08-27T00:00:01.000Z', durationMs: 0 },
     environment: { platform: process.platform, arch: process.arch, node: process.version },
     git: {},
     fixtures: [{ source: 'empty.txt', bundledPath: 'fixtures/empty.txt', bytes: 0 }],
@@ -36,7 +36,7 @@ test('replays code-executing commands when confirmation is explicitly bypassed',
   await writeFile(path.join(dir, 'repro.json'), JSON.stringify({
     schemaVersion: 1,
     createdAt: new Date().toISOString(),
-    command: { command: [process.execPath, 'ok.mjs'], cwd: '.', exitCode: 3, signal: null, stdout: '', stderr: '', startedAt: '', finishedAt: '', durationMs: 0 },
+    command: { command: [process.execPath, 'ok.mjs'], cwd: '.', exitCode: 3, signal: null, stdout: '', stderr: '', startedAt: '2026-08-27T00:00:00.000Z', finishedAt: '2026-08-27T00:00:01.000Z', durationMs: 0 },
     environment: { platform: process.platform, arch: process.arch, node: process.version },
     git: {},
     fixtures: [{ source: 'ok.mjs', bundledPath: 'fixtures/ok.mjs', bytes: 17 }],
@@ -50,7 +50,7 @@ test('replays zero-fixture bundles from the existing bundle directory', async ()
   await writeFile(path.join(dir, 'repro.json'), JSON.stringify({
     schemaVersion: 1,
     createdAt: new Date().toISOString(),
-    command: { command: [process.execPath, '-e', 'process.exit(process.cwd() === process.argv[1] ? 0 : 1)', dir], cwd: '.', exitCode: 0, signal: null, stdout: '', stderr: '', startedAt: '', finishedAt: '', durationMs: 0 },
+    command: { command: [process.execPath, '-e', 'process.exit(process.cwd() === process.argv[1] ? 0 : 1)', dir], cwd: '.', exitCode: 0, signal: null, stdout: '', stderr: '', startedAt: '2026-08-27T00:00:00.000Z', finishedAt: '2026-08-27T00:00:01.000Z', durationMs: 0 },
     environment: { platform: process.platform, arch: process.arch, node: process.version },
     git: {},
     fixtures: [],
@@ -64,7 +64,7 @@ test('rejects malformed fixture entries before replay starts', async () => {
   const dir = await mkdtemp(path.join(os.tmpdir(), 'bugrepro-replay-invalid-'));
   await writeFile(path.join(dir, 'repro.json'), JSON.stringify({
     schemaVersion: 1, createdAt: new Date().toISOString(),
-    command: { command: ['cat', 'missing.txt'], cwd: '.', exitCode: 0, signal: null, stdout: '', stderr: '', startedAt: '', finishedAt: '', durationMs: 0 },
+    command: { command: ['cat', 'missing.txt'], cwd: '.', exitCode: 0, signal: null, stdout: '', stderr: '', startedAt: '2026-08-27T00:00:00.000Z', finishedAt: '2026-08-27T00:00:01.000Z', durationMs: 0 },
     environment: { platform: process.platform, arch: process.arch, node: process.version },
     git: {}, fixtures: [{}], redactions: []
   }));
