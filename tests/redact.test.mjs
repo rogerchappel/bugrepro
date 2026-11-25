@@ -9,6 +9,14 @@ test('redacts default secret assignments', () => {
   assert.ok(result.applied.includes('generic-secret-assignment'));
 });
 
+test('redacts complete quoted and delimiter-containing secret values', () => {
+  const result = redactText(`token="alpha,beta;gamma" password:'one two,three;four' api_key=plain,ordinary`);
+  assert.equal(result.text, `token=[REDACTED:SECRET] password:[REDACTED:SECRET] api_key=[REDACTED:SECRET],ordinary`);
+  for (const secret of ['alpha', 'beta', 'gamma', 'one two', 'three', 'four']) {
+    assert.equal(result.text.includes(secret), false);
+  }
+});
+
 test('applies custom redaction rules', () => {
   const rule = parseRule('host::internal\\.example\\.test::[host]');
   const result = redactText('see internal.example.test', [rule]);
