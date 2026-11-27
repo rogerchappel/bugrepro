@@ -45,3 +45,17 @@ test('default redaction retains home path handling', () => {
   assert.equal(result.text, 'file at ~/private');
   assert.ok(result.applied.includes('home-directory'));
 });
+
+test('reports global rules that redact repeated matches', () => {
+  const rule = { name: 'marker', pattern: 'secret', replacement: '[hidden]', flags: 'g' };
+  const result = redactText('secret and secret', [rule]);
+  assert.equal(result.text, '[hidden] and [hidden]');
+  assert.deepEqual(result.applied, ['marker']);
+});
+
+test('does not report a global rule that matches only after the first match', () => {
+  const rule = { name: 'later-only', pattern: 'second', replacement: '[hidden]', flags: 'g' };
+  const result = redactText('first then second', [rule]);
+  assert.equal(result.text, 'first then [hidden]');
+  assert.deepEqual(result.applied, ['later-only']);
+});
