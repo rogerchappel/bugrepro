@@ -39,7 +39,7 @@ export async function packBundle(inputDir: string, outputFile?: string): Promise
 }
 
 async function tarGzip(inputDir: string, outputFile: string): Promise<void> {
-  const temporaryFile = `${outputFile}.tmp-${process.pid}-${Date.now()}`;
+  const temporaryFile = `${outputFile}.tmp-${process.pid}-${Date.now()}-${Math.random().toString(36).slice(2)}`;
   try {
     await new Promise<void>((resolve, reject) => {
       const out = createWriteStream(temporaryFile, { flags: 'wx' });

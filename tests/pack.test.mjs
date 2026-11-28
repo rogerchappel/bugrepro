@@ -91,6 +91,29 @@ test('packs a valid bundle into a sibling non-empty tarball', async () => {
   assert.ok((await stat(out)).size > 0);
 });
 
+test('preserves an existing temporary archive on a name collision', async () => {
+  const parent = await mkdtemp(path.join(os.tmpdir(), 'bugrepro-pack-collision-'));
+  const dir = path.join(parent, 'bundle');
+  const bin = path.join(parent, 'bin');
+  await mkdir(dir);
+  await mkdir(bin);
+  await writeBundle(dir);
+  const out = path.join(parent, 'bundle.tar.gz');
+  const temporary = `${out}.tmp-${process.pid}-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  await writeFile(temporary, 'pre-existing temporary data');
+  const fakeTar = path.join(bin, 'tar');
+  await writeFile(fakeTar, '#!/bin/sh\nprintf payload\n');
+  await chmod(fakeTar, 0o755);
+  const previousPath = process.env.PATH;
+  process.env.PATH = `${bin}${path.delimiter}${previousPath ?? ''}`;
+  try {
+    await packBundle(dir, out);
+  } finally {
+    process.env.PATH = previousPath;
+  }
+  assert.ok((await stat(out)).size > 0);
+});
+
 test('preserves an existing target and removes partial output when tar fails', async () => {
   const parent = await mkdtemp(path.join(os.tmpdir(), 'bugrepro-pack-failure-'));
   const dir = path.join(parent, 'bundle');
